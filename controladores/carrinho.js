@@ -1,6 +1,7 @@
 const express = require('express');
 const {lerArquivo, escreverNoArquivo} = require('../bibliotecaFS');
 const {filtroEstoque} = require('../utilitarios');
+
 const consultarEstoque = async (req, res) => {
     try {
         let data = await lerArquivo();
@@ -37,4 +38,21 @@ const consultarEstoque = async (req, res) => {
 
 }
 
-module.exports = {consultarEstoque};
+const consultarCarrinho = async (req, res) => {
+    try {
+        const data = await lerArquivo();
+        const {produtos, subtotal, dataDeEntrega, valorDoFrete, totalAPagar } = data.carrinho;
+        res.json({
+            produtos,
+            subtotal,
+            dataDeEntrega,
+            valorDoFrete,
+            totalAPagar
+        });
+        
+    } catch (error) {
+        res.json({ error: err.message });
+    }
+}
+
+module.exports = {consultarEstoque, consultarCarrinho};
