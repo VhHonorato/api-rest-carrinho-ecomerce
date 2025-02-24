@@ -1,6 +1,7 @@
 const express = require('express');
 const {lerArquivo, escreverNoArquivo} = require('../bibliotecaFS');
 const {filtroEstoque, calcularCarrinho} = require('../utilitarios');
+const { add } = require('date-fns/fp');
 
 const consultarEstoque = async (req, res) => {
     try {
@@ -60,33 +61,43 @@ const adicionarAoCarrinho = async (req, res) => {
         let data = await lerArquivo();
         let {produtos, carrinho } = data
         const {id, quantidade} = req.query;
-        console.log(id);
+        console.log(Number(id));
         const filtraProduto = await produtos.find((produtos) => produtos.id === Number(id));
         if(!filtraProduto){
             return res.status(400).json("Produto não encontrado");
         }
         if(filtraProduto.estoque < quantidade){
-            res.status(400).json("Estoque insuficiente");
+            return res.status(400).json("Estoque insuficiente");
         }
-        const indiceProduto = carrinho.produtos.findIndex((produtos) => produtos.id === Number(id));
+        const indiceProduto = carrinho.produtos.findIndex((produto) => produto.id == id);
+        // console.log(carrinho.produtos);
+        console.log(indiceProduto);
         if(indiceProduto >= 0){
-            carrinho.produtos[indiceProduto].quantidade += quantidade; 
+            data.carrinho.produtos[indiceProduto].quantidade += Number(quantidade);
+            const indiceProdutoEstoque = data.produtos.findIndex((produto) => produto.id == id);
+           
+            console.log(carrinho.produtos[indiceProduto].quantidade);
+            console.log(indiceProdutoEstoque); 
         } else {
             const addProduto = {
                 id: id,
-                quantidade: quantidade,
+                quantidade: Number(quantidade),
                 nome: filtraProduto.nome,
                 preco: filtraProduto.preco,
                 categoria: filtraProduto.categoria
         }
         carrinho.produtos.push(addProduto);
         
+
         };
         carrinho = calcularCarrinho(carrinho);
-        await escreverNoArquivo(carrinho);
+        const indiceProdutoEstoque = data.produtos.findIndex((produtos) => produtos.id == id);
+        data.produtos[indiceProdutoEstoque].estoque -= Number(quantidade);
+        console.log(indiceProdutoEstoque);
+        await escreverNoArquivo({ produtos, carrinho: carrinho });
         res.json(carrinho);
     }catch (error) {
-        console.log(req.route);
+        
         res.json({ error: error.message });
     }
    
