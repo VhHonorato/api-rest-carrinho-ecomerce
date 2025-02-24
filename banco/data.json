@@ -4,7 +4,7 @@
       "id": 1,
       "nome": "Pipoca para Microondas Manteiga YOKI 50g",
       "preco": 169,
-      "estoque": 0,
+      "estoque": 10,
       "categoria": "Bazar"
     },
     {
@@ -46,7 +46,7 @@
       "id": 7,
       "nome": "Macarrão Italiano Capellini N°1 BARILLA 500g",
       "preco": 859,
-      "estoque": 0,
+      "estoque": 3,
       "categoria": "Bazar"
     },
     {
@@ -96,7 +96,7 @@
       }
     ],
     "subtotal": 1014,
-    "dataDeEntrega": "2025-03-17T15:49:31.766Z",
+    "dataDeEntrega": "2025-03-17T20:02:46.259Z",
     "valorDoFrete": 5000,
     "totalApagar": 0,
     "totalAPagar": 6014

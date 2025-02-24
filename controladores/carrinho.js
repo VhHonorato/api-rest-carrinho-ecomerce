@@ -34,9 +34,6 @@ const consultarEstoque = async (req, res) => {
         res.json({ error: err.message });
     }
 
-    
-
-
 }
 
 const consultarCarrinho = async (req, res) => {
@@ -61,8 +58,8 @@ const adicionarAoCarrinho = async (req, res) => {
         let data = await lerArquivo();
         let {produtos, carrinho } = data
         const {id, quantidade} = req.query;
-        console.log(Number(id));
         const filtraProduto = await produtos.find((produtos) => produtos.id === Number(id));
+       
         if(!filtraProduto){
             return res.status(400).json("Produto não encontrado");
         }
@@ -76,8 +73,6 @@ const adicionarAoCarrinho = async (req, res) => {
             data.carrinho.produtos[indiceProduto].quantidade += Number(quantidade);
             const indiceProdutoEstoque = data.produtos.findIndex((produto) => produto.id == id);
            
-            console.log(carrinho.produtos[indiceProduto].quantidade);
-            console.log(indiceProdutoEstoque); 
         } else {
             const addProduto = {
                 id: id,
@@ -102,10 +97,58 @@ const adicionarAoCarrinho = async (req, res) => {
     }
    
 
+};
+
+const editarCarrinho = async (req, res) => {
+    try {
+        let data = await lerArquivo();
+        let {produtos, carrinho} = data;
+        const {id} = req.params;
+        const {quantidade} = req.query;
+        let positivoOunegativo = Math.sign(Number(quantidade));
+        const produtoCarrinho = await carrinho.produtos.find((produto) => produto.id == id);
+        const produtoEstoque = await produtos.find((produto) => produto.id == id);
+
+        if(!produtoCarrinho){
+            return res.status(400).json({mensage: "Produto não encontrado no carrinho."});
+        };
+      
+        if(positivoOunegativo === -1){
+            
+            if( produtoCarrinho.quantidade < 1){
+                return res.status(400).json({mensage: "Quantidade retirada maior que a quantidade de itens no carrinho."});
+
+            }else{
+                const indiceProdutoCarrinho = carrinho.produtos.findIndex((produto) => produto.id == id);
+                carrinho.produtos[indiceProdutoCarrinho].quantidade += Number(quantidade);
+                const indiceProdutoEstoque = carrinho.produtos.findIndex((produto) => produto.id == id);
+                produtos[indiceProdutoEstoque].estoque -= Number(quantidade);
+
+            }
+        }
+        if(positivoOunegativo === 1){
+            if(produtoEstoque.estoque < 1 || produtoEstoque.estoque < Number(quantidade)){
+                return res.status(400).json({mensage: "Produto com estoque insuficiente."});
+
+        }else{
+            const indiceProdutoCarrinho = carrinho.produtos.findIndex((produto) => produto.id == id);
+            carrinho.produtos[indiceProdutoCarrinho].quantidade += Number(quantidade);
+            const indiceProdutoEstoque = carrinho.produtos.findIndex((produto) => produto.id == id);
+            produtos[indiceProdutoEstoque].estoque -= Number(quantidade);
+        }
+    }
+        carrinho = calcularCarrinho(carrinho);
+        await escreverNoArquivo(data);
+        res.json(carrinho)
+
+    } catch (error) {
+        res.json({ error: error.message });
+    }
 }
 
 module.exports = {
     consultarEstoque,
     consultarCarrinho,
-    adicionarAoCarrinho
+    adicionarAoCarrinho,
+    editarCarrinho
 };
