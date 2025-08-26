@@ -105,48 +105,44 @@ const editarCarrinho = async (req, res) => {
         let {produtos, carrinho} = data;
         const {id} = req.params;
         const {quantidade} = req.query;
-        let positivoOunegativo = Math.sign(Number(quantidade));
-        const produtoCarrinho = await carrinho.produtos.find((produto) => produto.id == id);
-        const produtoEstoque = await produtos.find((produto) => produto.id == id);
+        const quantidadeNum = Number(quantidade);
 
-        if(!produtoCarrinho){
-            return res.status(400).json({mensage: "Produto não encontrado no carrinho."});
+        const indiceProdutoCarrinho = carrinho.produtos.findIndex((produto) => produto.id == id);
+
+        if(indiceProdutoCarrinho < 0){
+            return res.status(404).json({mensagem: "Produto não encontrado no carrinho."});
         };
-      
-        if(positivoOunegativo === -1){
-            
-            if( produtoCarrinho.quantidade < 1){
-                return res.status(400).json({mensage: "Quantidade retirada maior que a quantidade de itens no carrinho."});
 
-            }else{
-                const indiceProdutoCarrinho = carrinho.produtos.findIndex((produto) => produto.id == id);
-                carrinho.produtos[indiceProdutoCarrinho].quantidade += Number(quantidade);
-                const indiceProdutoEstoque = carrinho.produtos.findIndex((produto) => produto.id == id);
-                produtos[indiceProdutoEstoque].estoque -= Number(quantidade);
+        const produtoCarrinho = carrinho.produtos[indiceProdutoCarrinho];
+        const indiceProdutoEstoque = produtos.findIndex((produto) => produto.id == id);
+        const produtoEstoque = produtos[indiceProdutoEstoque];
+      
+        if(quantidadeNum < 0){ //Removendo do carrinho
+            if( produtoCarrinho.quantidade + quantidadeNum < 0){
+                return res.status(400).json({mensagem: "Quantidade retirada maior que a quantidade de itens no carrinho."});
 
             }
         }
-        if(positivoOunegativo === 1){
-            if(produtoEstoque.estoque < 1 || produtoEstoque.estoque < Number(quantidade)){
-                return res.status(400).json({mensage: "Produto com estoque insuficiente."});
 
-        }else{
-            const indiceProdutoCarrinho = carrinho.produtos.findIndex((produto) => produto.id == id);
-            carrinho.produtos[indiceProdutoCarrinho].quantidade += Number(quantidade);
-            const indiceProdutoEstoque = carrinho.produtos.findIndex((produto) => produto.id == id);
-            produtos[indiceProdutoEstoque].estoque -= Number(quantidade);
+        if (quantidadeNum > 0) { // Adicionando ao carrinho
+            if (produtoEstoque.estoque < quantidadeNum) {
+                return res.status(400).json({mensagem: "Produto com estoque insuficiente."});
+            }
         }
-    }
+
+        carrinho.produtos[indiceProdutoCarrinho].quantidade += quantidadeNum;
+        produtos[indiceProdutoEstoque].estoque -= quantidadeNum;
+
         carrinho = calcularCarrinho(carrinho);
         await escreverNoArquivo(data);
         res.json(carrinho)
-
-    } catch (error) {
+    
+    }catch (error) {
         res.json({ error: error.message });
     }
 }
 const deletarDoCarrinho = async (req, res) =>{
-    let data = await lerArquivo();
+        let data = await lerArquivo();
     let {produtos, carrinho} = data;
     const {idProduto} = req.params;
     const produtoCarrinho = await carrinho.produtos.find((produto) => produto.id == idProduto);
@@ -160,20 +156,26 @@ const deletarDoCarrinho = async (req, res) =>{
 
     }else{
         const indiceProdutoCarrinho = carrinho.produtos.findIndex((produto) => produto.id == idProduto);
+        console.log(indiceProdutoCarrinho);
+        if (indiceProdutoCarrinho < 0) {
+            return res.status(404).json({ mensagem: "Produto não encontrado no carrinho." });
+        }
+
+        const produtoRemovido = carrinho.produtos[indiceProdutoCarrinho];
         const indiceProdutoEstoque = produtos.findIndex((produto) => produto.id == idProduto);
         produtos[indiceProdutoEstoque].estoque += carrinho.produtos[indiceProdutoCarrinho].quantidade;
-        
+
         carrinho.produtos.splice(indiceProdutoCarrinho, 1);
         if(carrinho.produtos.length > 0){
-            carrinho = calcularCarrinho(carrinho);
+        carrinho = calcularCarrinho(carrinho);
 
         }else{
             carrinho.subtotal = 0;
             carrinho.dataDeEntrega = null;
             carrinho.valorDoFrete = 0;
             carrinho.totalAPagar = 0;
-            
-            await escreverNoArquivo(data);
+
+        await escreverNoArquivo(data);
             return res.status(400).json({mensage: "Removido todos os itens do carrinho."})
         }
         

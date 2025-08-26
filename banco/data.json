@@ -4,7 +4,7 @@
       "id": 1,
       "nome": "Pipoca para Microondas Manteiga YOKI 50g",
       "preco": 169,
-      "estoque": 12,
+      "estoque": 11,
       "categoria": "Bazar"
     },
     {
@@ -74,7 +74,7 @@
       "id": 11,
       "nome": "Oléo de Canola QUALITÁ Pet 900ml",
       "preco": 1199,
-      "estoque": 10,
+      "estoque": null,
       "categoria": "Oleo"
     },
     {
@@ -86,11 +86,19 @@
     }
   ],
   "carrinho": {
-    "produtos": [],
-    "subtotal": 0,
-    "dataDeEntrega": null,
-    "valorDoFrete": 0,
+    "produtos": [
+      {
+        "id": "11",
+        "quantidade": 1,
+        "nome": "Oléo de Canola QUALITÁ Pet 900ml",
+        "preco": 1199,
+        "categoria": "Oleo"
+      }
+    ],
+    "subtotal": null,
+    "dataDeEntrega": "2025-09-16T22:30:14.213Z",
+    "valorDoFrete": 5000,
     "totalApagar": 0,
-    "totalAPagar": 0
+    "totalAPagar": null
   }
 }
