@@ -141,49 +141,33 @@ const editarCarrinho = async (req, res) => {
         res.json({ error: error.message });
     }
 }
+
 const deletarDoCarrinho = async (req, res) =>{
+    try {
         let data = await lerArquivo();
-    let {produtos, carrinho} = data;
-    const {idProduto} = req.params;
-    const produtoCarrinho = await carrinho.produtos.find((produto) => produto.id == idProduto);
-    const produtoEstoque = await produtos.find((produto) => produto.id == idProduto);
-    if(!produtoCarrinho){
-        return res.status(400).json({mensage: "Produto não encontrado no carrinho."});
-    };
+        let {produtos, carrinho} = data;
+        const idProduto = req.params;
+        const indiceProdutoCarrinho = carrinho.produtos.findIndex((produto)=> produto.id == idProduto);
 
-    if( produtoCarrinho.quantidade < 1){
-        return res.status(400).json({mensage: "Quantidade retirada maior que a quantidade de itens no carrinho."});
-
-    }else{
-        const indiceProdutoCarrinho = carrinho.produtos.findIndex((produto) => produto.id == idProduto);
-        console.log(indiceProdutoCarrinho);
-        if (indiceProdutoCarrinho < 0) {
-            return res.status(404).json({ mensagem: "Produto não encontrado no carrinho." });
+        if(indiceProdutoCarrinho < 0){
+            return res.status(404).json({mensagem: "Porduto não encontrado no carrinho."});
         }
 
         const produtoRemovido = carrinho.produtos[indiceProdutoCarrinho];
         const indiceProdutoEstoque = produtos.findIndex((produto) => produto.id == idProduto);
-        produtos[indiceProdutoEstoque].estoque += carrinho.produtos[indiceProdutoCarrinho].quantidade;
+
+        if(indiceProdutoEstoque > -1){
+            produtos[indiceProdutoEstoque].estoque += produtoRemovido.quantidade;
+        }
 
         carrinho.produtos.splice(indiceProdutoCarrinho, 1);
-        if(carrinho.produtos.length > 0){
         carrinho = calcularCarrinho(carrinho);
-
-        }else{
-            carrinho.subtotal = 0;
-            carrinho.dataDeEntrega = null;
-            carrinho.valorDoFrete = 0;
-            carrinho.totalAPagar = 0;
-
         await escreverNoArquivo(data);
-            return res.status(400).json({mensage: "Removido todos os itens do carrinho."})
-        }
+        res.status(200).json(carrinho);
         
-
+    } catch (error) {
+        res.status(500).json({error: error.message});
     }
-    carrinho = calcularCarrinho(carrinho);
-    await escreverNoArquivo(data);
-    res.json(carrinho);
 }
 
 module.exports = {
