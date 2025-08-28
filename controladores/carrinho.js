@@ -67,8 +67,7 @@ const adicionarAoCarrinho = async (req, res) => {
             return res.status(400).json("Estoque insuficiente");
         }
         const indiceProduto = carrinho.produtos.findIndex((produto) => produto.id == id);
-        // console.log(carrinho.produtos);
-        console.log(indiceProduto);
+      
         if(indiceProduto >= 0){
             data.carrinho.produtos[indiceProduto].quantidade += Number(quantidade);
             const indiceProdutoEstoque = data.produtos.findIndex((produto) => produto.id == id);
@@ -88,7 +87,6 @@ const adicionarAoCarrinho = async (req, res) => {
         carrinho = calcularCarrinho(carrinho);
         const indiceProdutoEstoque = data.produtos.findIndex((produtos) => produtos.id == id);
         data.produtos[indiceProdutoEstoque].estoque -= Number(quantidade);
-        console.log(indiceProdutoEstoque);
         await escreverNoArquivo({ produtos, carrinho: carrinho });
         res.json(carrinho);
     }catch (error) {
@@ -146,16 +144,15 @@ const deletarDoCarrinho = async (req, res) =>{
     try {
         let data = await lerArquivo();
         let {produtos, carrinho} = data;
-        const idProduto = req.params;
-        const indiceProdutoCarrinho = carrinho.produtos.findIndex((produto)=> produto.id == idProduto);
-
+        const {idProduto} = req.params;
+        const indiceProdutoCarrinho = carrinho.produtos.findIndex((produto) => produto.id == idProduto);
+       
         if(indiceProdutoCarrinho < 0){
-            return res.status(404).json({mensagem: "Porduto não encontrado no carrinho."});
+            return res.status(404).json({mensagem: "Produto não encontrado no carrinho."});
         }
 
         const produtoRemovido = carrinho.produtos[indiceProdutoCarrinho];
         const indiceProdutoEstoque = produtos.findIndex((produto) => produto.id == idProduto);
-
         if(indiceProdutoEstoque > -1){
             produtos[indiceProdutoEstoque].estoque += produtoRemovido.quantidade;
         }
