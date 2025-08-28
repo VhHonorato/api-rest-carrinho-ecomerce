@@ -1,17 +1,10 @@
 const {lerArquivo, escreverNoArquivo} = require('./bibliotecaFS');
 const {addBusinessDays} = require("date-fns");
 const filtroEstoque = async (produto) => {
-    let data = await lerArquivo();
+    const data = await lerArquivo();
     const {produtos} = data;
-    let produtosComEstoque = [];
-    for(let i = 0; i < produtos.length; i++) {
-        if(produtos[i].estoque > 0){
-            await produtosComEstoque.push(produtos[i]);
-        }
-     }
-     return produtosComEstoque;
-};
-
+    return produtos.filter((produto) => produto.estoque > 0);
+}
 
 const calcularCarrinho = (carrinho) => {
     const dataDeEntrega = addBusinessDays(new Date(), 15);
